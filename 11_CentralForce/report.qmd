@@ -1,0 +1,11 @@
+# Periodic Solutions
+## For $F(r) = 1$\
+Found using fsolve root finding
+with initial conditions -    [ 4.837094489229557 0.113739688509354 0.481812323218859 1.333913034846417 ]
+time period =   49.578757824567518
+
+Using jacobian analysis, we find this is an unstable periodic motion.
+eigvals of jacobian = [   0.786327175145648 0.786327175145648 1.187326408237210 0.842228377131789]
+
+![Trajectories]("imgs/fr_1_unstable.png")
+
