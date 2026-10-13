@@ -19,6 +19,13 @@ format:
     highlight-style: github
     fig-align: center
     page-layout: article
+    include-in-header:
+      text: |
+        <style>
+          .question { font-style: italic; border-left: 3px solid #d0d7de; padding-left: 0.9em; margin-bottom: 1.2em; color: #3d4450; }
+          .question p, .question li { margin-bottom: 0.35em; }
+          .question ol { margin-bottom: 0; }
+        </style>
 ---
 
 ::: {.hidden}
@@ -31,7 +38,9 @@ $$
 
 ## Problem
 
+::: {.question}
 Set up (define system, draw FBD, write ODEs) a particle problem. Just one particle. 2D or 3D, your choice. Use a force, or forces that you like (gravity, spring, air friction). Any example of interest. Find a numerical solution. Graph it. Animate it. Try to make an interesting observation.
+:::
 
 ## ODE
 
@@ -59,43 +68,111 @@ For the initial conditions of `x,y,vx,vy = z0 = [0, 0, 0.5, -0.5];`
 
 # P02. Vectors in 3D
 
-*Given four random points $\bup{r}_A, \bup{r}_B, \bup{r}_C, \bup{r}_D$ and a
-force $\bup{F}$, write single vector formulas for: 
+::: {.question}
+Given four random points $\bup{r}_A, \bup{r}_B, \bup{r}_C, \bup{r}_D$ and a
+force $\bup{F}$, write single vector formulas for:
 
 (a) the minimum distance between lines $AB$ and $CD$
-
 (b) the end points of that shortest segment
-
 (c) the volume of tetrahedron $ABCD$ (derive "⅓ base × height")
-
-(d) the tension in bar $AD$ when $A, B, C$ are fixed and connected by rods to $D$, where $\bup{F}$ is applied.*
+(d) the tension in bar $AD$ when $A, B, C$ are fixed and connected by rods to $D$, where $\bup{F}$ is applied.
+:::
 
 # P03. More ODE & Animation Practice
 
-*Pick a simple ODE system (harmonic oscillator, pendulum, Lorenz …) and solve it
-three ways: 
+::: {.question}
+Pick a simple ODE system (harmonic oscillator, pendulum, Lorenz …) and solve it
+three ways:
 
 (a) a single script with a plain Euler loop
-
 (b) your own Euler solver function calling a RHS function
-
-(c) ODE45. 
-
+(c) ODE45
 (d) study accuracy vs. step size with Euler
+(e) vary `RelTol`/`AbsTol` in ODE45 to judge whether MATLAB estimates its own accuracy well.
+:::
 
-(e) vary `RelTol`/`AbsTol` in ODE45 to judge whether MATLAB estimates its own accuracy well.*
+## System
+
+A damped 1D spring–mass: $m = 10$ kg, $k = 100$ N/m, rest length $L_0 = 2$ m,
+damper $b = 10$ Ns/m, starting at $x_0 = 1$ m, $\dot{x}_0 = 1$ m/s.
+
+$$
+\dot{x} = v_x, \qquad \dot{v}_x = -\frac{k}{m}(x - L_0) - \frac{b}{m} v_x
+$$
+
+## (a)–(c) Three Solutions
+
+All three methods give the same under-damped decay onto $x = L_0 = 2$
+(Euler runs use $h = 10^{-3}$).
+
+::: {.panel-tabset}
+### (a) Single-script Euler
+
+![](03_ODE/imgs/singleScript.png)
+
+### (b) Euler solver + RHS function
+
+![](03_ODE/imgs/eulerFunction.png)
+
+### (c) ODE45
+
+![](03_ODE/imgs/ode45.png)
+:::
+
+## (d) Accuracy vs. Step Size
+
+The system is solved with the Euler solver for $h = 10^{-8}, 10^{-7}, \dots, 10^{1}$.
+The finest run ($h = 10^{-8}$) is taken as the "exact" answer and the error in
+$x(t_f = 10)$ of every other run is measured against it — no analytical solution needed.
+
+![Euler global error at $t_f$ vs. step size](03_ODE/imgs/error_vs_h.png){width=80%}
+
+- For $h \le 10^{-2}$ the error falls on a line of slope 1, i.e. Euler's global error is $O(h)$:
+  every 10× smaller step buys one more correct digit.
+- For $h \gtrsim 0.1$ the method stops converging; at $h = 1$ the solution blows up
+  (forward Euler is unstable once $h$ is comparable to the oscillation time scale
+  $\sqrt{m/k} \approx 0.3$ s).
 
 # P06. Spring and Mass (2D)
 
-*A mass $m$ on a spring $(k, L_0)$ pinned at the origin, under gravity, starting
-from $\bup{r}_0, \bup{v}_0$. \
-(a) Find the EoM \
-(b) plot and animate the trajectory \
-(c) list and carry out as many sanity checks as possible (e.g. $k = 0$ → balistics; $x_0 = v_{x0} = 0$ → stays on the $y$-axis; $g = 0, \bup{v}_0 = 0$ → radial harmonic oscillation; $L_0 = 0$ → …).*
+::: {.question}
+A mass $m$ on a spring $(k, L_0)$ pinned at the origin, under gravity, starting
+from $\bup{r}_0, \bup{v}_0$.
+
+(a) Find the EoM
+(b) plot and animate the trajectory
+(c) list and carry out as many sanity checks as possible (e.g. $k = 0$ → ballistics; $x_0 = v_{x0} = 0$ → stays on the $y$-axis; $g = 0, \bup{v}_0 = 0$ → radial harmonic oscillation; $L_0 = 0$ → …).
+:::
+
+## (a) Equations of Motion
+
+With $\ell = |\bup{r}|$ and $\hat{\bup{\lambda}} = \bup{r}/\ell$ the unit vector from the anchor to the mass:
+
+$$
+\dot{\bup{r}} = \bup{v}, \qquad
+m\dot{\bup{v}} = -k(\ell - L_0)\,\hat{\bup{\lambda}} - mg\,\hat{\bup{\jmath}}
+$$
+
+## (b), (c) Trajectories and Sanity Checks
+
+::: {layout-ncol=2}
+![$k = 0$: the spring does nothing and the mass flies a parabola (plain ballistics).](06_SpringMass2D/imgs/k=0.png)
+
+![$L_0 = 0$, released from rest at $(1, 0)$ ($m = 1$, $k = g = 10$): the motion is a straight line.](06_SpringMass2D/imgs/l0=0.png)
+:::
+
+**$L_0 = 0$ check.** With zero rest length the spring force is just $-k\bup{r}$, so the
+EoM separate into $m\ddot{x} = -kx$ and $m\ddot{y} = -ky - mg$: two independent harmonic
+oscillators with the same frequency $\sqrt{k/m}$, centred on $(0, -mg/k) = (0, -1)$. Released
+from rest, both start at the extreme of their swing in phase, so the mass oscillates along the
+straight line through $(1, 0)$ and $(0, -1)$, reaching the mirror point $(-1, -2)$ — which is
+what the simulation shows.
 
 # P07. Simple Animation of a Shape
 
-*Draw an object (face, house, …) and make it move smoothly and interestingly on screen using only rigid motions — translations and rotations, no distortion.*
+::: {.question}
+Draw an object (face, house, …) and make it move smoothly and interestingly on screen using only rigid motions — translations and rotations, no distortion.
+:::
 
 I defined a rectangle with 4 points and applied these transformations: \
 1. translate by $\vec{T} = (2 2)^T$ 
@@ -110,13 +187,15 @@ them from time 0 to some time tf within which the animation occurs.
 
 # P08. Simplest Dynamics in Polar Coordinates
 
-*A force-free particle on a plane, posed in polar coordinates: 
+::: {.question}
+A force-free particle on a plane, posed in polar coordinates:
 
 (a) write $\bup{a} = \bup{0}$ as ODEs in $(r, \theta)$
 (b) solve numerically for various ICs
 (c) check the path is a straight line at constant speed
 (d) define a quantitative "straightness" measure and evaluate it
-(e) does it improve as tolerances are tightened?*
+(e) does it improve as tolerances are tightened?
+:::
 
 The equations of motion for this problem come out to be:
 
@@ -141,11 +220,44 @@ For the straightness check we compare the solution with the solution $\vec{r}(t)
 
 # P09. Cannon Ball (Linear Drag)
 
-*A cannon ball launched at angle $\theta$ and speed $v_0$ with gravity and linear viscous drag $|cv|$. (a) Analytical $x(t), y(t)$; (b) numerical solution for $\theta = \pi/4$, $v_0 = g = m = c = 1$; (c) compare — error at $t = 2$ vs. tolerances; (d) trajectories as $v_0 \to \infty$ — what shape?; (e) where does the range-maximising angle $\theta^*$ tend as $v_0 \to \infty$?*
+::: {.question}
+A cannon ball launched at angle $\theta$ and speed $v_0$ with gravity and linear viscous drag $|cv|$.
+
+(a) Analytical $x(t), y(t)$
+(b) numerical solution for $\theta = \pi/4$, $v_0 = g = m = c = 1$
+(c) compare — error at $t = 2$ vs. tolerances
+(d) trajectories as $v_0 \to \infty$ — what shape?
+(e) where does the range-maximising angle $\theta^*$ tend as $v_0 \to \infty$?
+:::
+
+## Equations of Motion
+
+$$
+\dot{\bup{r}} = \bup{v}, \qquad m\dot{\bup{v}} = -c\,\bup{v} - mg\,\hat{\bup{\jmath}}
+$$
+
+Integrated with ODE45 from the origin, with an event function that stops the
+integration when the ball comes back down to $y = 0$.
+
+## Numerical Trajectory
+
+Run with $\theta = 45^\circ$, $v_0 = 10$, $m = 1$, $g = 10$, $c = 10$ (heavy drag):
+
+![Cannon ball with strong linear drag](09_CannonBall/imgs/trajectory.png){width=80%}
+
+The path is far from a parabola: the ball rises almost in a straight line, then drops
+nearly vertically. With linear drag the horizontal velocity decays as
+$v_x = v_0\cos\theta\, e^{-ct/m}$, so $x$ can never exceed
+$x_\infty = m v_0 \cos\theta / c = 0.707$ — the vertical asymptote the trajectory runs into.
 
 # P11. Central Force
 
-*Only force is central, $\bup{F} = -F(r)\,\hat{\bup{e}}_r$. (a) Find $F(r)$ such that, across circular orbits, the speed is independent of radius. (b) Numerically (with `fsolve` over ICs and period) find a periodic orbit that is neither circular nor straight, for a force law other than a linear spring or inverse-square gravity; comment on chaotic-looking failed searches and on the minimum number of loops for power laws.*
+::: {.question}
+Only force is central, $\bup{F} = -F(r)\,\hat{\bup{e}}_r$.
+
+(a) Find $F(r)$ such that, across circular orbits, the speed is independent of radius.
+(b) Numerically (with `fsolve` over ICs and period) find a periodic orbit that is neither circular nor straight, for a force law other than a linear spring or inverse-square gravity; comment on chaotic-looking failed searches and on the minimum number of loops for power laws.
+:::
 
 ![](11_CentralForce/imgs/P11_PartA.jpeg){width=50%}
 
@@ -164,18 +276,24 @@ eigvals of jacobian = [   0.786327175145648 0.786327175145648 1.187326408237210 
 
 # P12. Canon Ball 2 (Quadratic Drag)
 
-*A cannon ball m is launched at angle $\theta$ and speed $v_0$. It is acted on
-by gravity g and a quadratic drag with magnitude $|cv^2|$.
+::: {.question}
+A cannon ball $m$ is launched at angle $\theta$ and speed $v_0$. It is acted on
+by gravity $g$ and a quadratic drag with magnitude $|cv^2|$.
 
-(a) Find a numerical solution using θ= π/4, v0 = 1 m/s, g= 1 m/s2, m= 1 kg.
-
-(b) Numerically calculate (by integrating W= P along with the state variables)
-the work done by the drag force. Compare this with the change of the total
-energy. Make a plot showing that the difference between the two goes to zero as the integration gets more and more accurate.*
+(a) Find a numerical solution using $\theta = \pi/4$, $v_0 = 1$ m/s, $g = 1$ m/s², $m = 1$ kg.
+(b) Numerically calculate (by integrating $\dot{W} = P$ along with the state variables) the work done by the drag force. Compare this with the change of the total energy. Make a plot showing that the difference between the two goes to zero as the integration gets more and more accurate.
+:::
 
 # P13. Statics vs Dynamics — Two Spring Damper System
 
-*A 2D point mass under gravity, connected to anchors $A$ and $B$ by springs $(k_A, L_A), (k_B, L_B)$ with parallel dashpots $(c_A, c_B)$ and air drag $c_d$. (a) Find an equilibrium; (b) simulate the motion; (c) find **all** equilibria and the most/least number possible as parameters vary; (d) determine stability both by simulation near the equilibrium and by eigenvalues of the linearised system.*
+::: {.question}
+A 2D point mass under gravity, connected to anchors $A$ and $B$ by springs $(k_A, L_A), (k_B, L_B)$ with parallel dashpots $(c_A, c_B)$ and air drag $c_d$.
+
+(a) Find an equilibrium.
+(b) Simulate the motion.
+(c) Find **all** equilibria and the most/least number possible as parameters vary.
+(d) Determine stability both by simulation near the equilibrium and by eigenvalues of the linearised system.
+:::
 
 ## Intro
 
@@ -385,12 +503,195 @@ Unstable Fixed Points:
 
 # P14. What Means "Rate of Change of Angular Momentum"?
 
-*For a moving particle $P$ and a moving reference point $C$, decide for which definition of $\bup{H}_{/C}$ the equation $\bup{M}_C = \dot{\bup{H}}_{/C}$ holds (i.e. is consistent with $\bup{F} = m\bup{a}$): (a) $\bup{r}_{P/C'} \times \bup{v}_{P/0}\, m$ with $C'$ fixed and instantaneously coincident with $C$; (b) $\bup{r}_{P/C} \times \bup{v}_{P/0}\, m$; (c) $\bup{r}_{P/C} \times \bup{v}_{P/C}\, m$ — in general, or only in special cases?*
+::: {.question}
+For a moving particle $P$ and a moving reference point $C$, decide for which definition of $\bup{H}_{/C}$ the equation $\bup{M}_C = \dot{\bup{H}}_{/C}$ holds (i.e. is consistent with $\bup{F} = m\bup{a}$) — in general, or only in special cases?
+
+(a) $\bup{H}_{/C} = \bup{r}_{P/C'} \times \bup{v}_{P/0}\, m$, with $C'$ fixed and instantaneously coincident with $C$
+(b) $\bup{H}_{/C} = \bup{r}_{P/C} \times \bup{v}_{P/0}\, m$
+(c) $\bup{H}_{/C} = \bup{r}_{P/C} \times \bup{v}_{P/C}\, m$
+:::
 
 <embed src="14_AngularMomentum/P14_AngularMomentum.pdf" type="application/pdf" width="100%" height="900px">
 
 # P15. Potential Energy
 
-*Find the potential-energy function for a set of 3D force fields: constant force, zero-rest-length spring, spring with rest length, inverse-square central force, general central force $f(r)$, spring and inverse-square attraction between two points, constant force along $\hat{\boldsymbol{\lambda}}$, and an $x$-only force $f(x)$ — verifying the given answers with multivariable calculus.*
+::: {.question}
+Find the potential-energy function for each of these 3D force fields, verifying the given answers with multivariable calculus:
+
+(a) constant force
+(b) zero-rest-length spring
+(c) spring with rest length
+(d) inverse-square central force
+(e) general central force $f(r)$
+(f) spring between two points
+(g) inverse-square attraction between two points
+(h) constant force along $\hat{\boldsymbol{\lambda}}$
+(i) an $x$-only force $f(x)$
+:::
 
 <embed src="15_PotentialFunction/P15_PotentialFunction.pdf" type="application/pdf" width="100%" height="900px">
+
+# P16. Mechanics of Two or More Particles
+
+::: {.question}
+(a) For two unequal particles $m_1$ and $m_2$ a distance $d$ apart, attracted only by Newtonian gravity $F = Gm_1m_2/r^2$, what is the period of circular motion?
+(b) Pick numbers for $G, m_1, m_2, d$ and test the analytical result with a numerical simulation; make plots that convincingly show the agreement.
+(c) For three equal particles, $m = 1$, $G = 10$, what is the angular speed for circular motion on a circle of diameter $d = 3$?
+(d) Check the three-particle result with a numerical simulation.
+:::
+
+## (a) Period of the Two-Body Circular Orbit
+
+Both masses circle the centre of mass at the same $\omega$. Writing $\bup{r} = \bup{r}_2 - \bup{r}_1$,
+momentum conservation about the (fixed) COM gives $\bup{r}_1 = -\frac{m_2}{m_1+m_2}\bup{r}$, so
+circular motion $\ddot{\bup{r}}_1 = -\omega^2\bup{r}_1$ plugged into $m_1\ddot{\bup{r}}_1 = \frac{Gm_1m_2}{r^2}\hat{\bup{r}}$ gives
+
+$$
+\omega^2 = \frac{G(m_1 + m_2)}{d^3}
+\quad\Rightarrow\quad
+T = 2\pi\sqrt{\frac{d^3}{G(m_1 + m_2)}}
+$$
+
+![Hand derivation](16_MultipleParticles/imgs/inverseGravityWorking.jpeg){width=85%}
+
+## (b) Numerical Check
+
+The masses start a distance $d$ apart on the $x$-axis, with velocities
+$\bup{v}_i = \omega\,(x_i - x_{\text{COM}})\,\hat{\bup{\jmath}}$ from the formula above,
+and are integrated with ODE45 (`RelTol = AbsTol = 1e-8`) for exactly $3T$.
+
+![Left: both bodies trace circles about the common centre of mass. Right: the separation $d$ stays constant and $x_1, x_2$ complete exactly three cycles in $3T$.](16_MultipleParticles/imgs/inverseGravityTrajectory.png)
+
+The orbit closes on itself after each predicted period and the separation never drifts,
+so the simulation agrees with $T = 2\pi\sqrt{d^3/G(m_1+m_2)}$.
+
+# P17. Montgomery's Eight
+
+::: {.question}
+Three equal masses $m = 1$ attract each other by inverse-square gravity with $G = 1$. Start them at
+
+$$(x_1, y_1) = (-0.97000436,\ 0.24308753), \quad (x_2, y_2) = (-x_1, -y_1), \quad (x_3, y_3) = (0, 0)$$
+
+with velocities
+
+$$(v_{x3}, v_{y3}) = (0.93240737,\ 0.86473146), \quad (v_{x1}, v_{y1}) = (v_{x2}, v_{y2}) = -(v_{x3}, v_{y3})/2.$$
+
+(a) Integrate and plot the motion of each particle in a different colour for 2.1 time units.
+(b) Same, but run for 10 time units.
+(c) Same, but change the initial conditions slightly.
+(d) Same, but change the initial conditions more and run for a much longer time.
+:::
+
+## Equations of Motion
+
+For each body $i$ with the other two $j, k$:
+
+$$
+m_i\ddot{\bup{r}}_i = \sum_{j \ne i} \frac{G m_i m_j}{|\bup{r}_j - \bup{r}_i|^3}\,(\bup{r}_j - \bup{r}_i)
+$$
+
+The 12-state system $[\bup{r}_1, \bup{r}_2, \bup{r}_3, \bup{v}_1, \bup{v}_2, \bup{v}_3]$ is integrated with ODE45.
+
+## (a) 2.1 Time Units
+
+![](17_MontgomerysEight/imgs/trajectory_a.png)
+
+## (b) 10 Time Units
+
+![All three bodies chase each other around the same figure-eight. The $x(t)$ traces are identical curves shifted in time by one third of the period.](17_MontgomerysEight/imgs/trajectory_b.png)
+
+## (c) Small Perturbation
+
+Adding $0.1$ to $v_{x3}$:
+
+![The bodies no longer share one curve and the eight comes apart almost immediately — the orbit is very sensitive to its initial conditions.](17_MontgomerysEight/imgs/trajectory_c_0.1_perturb_v3.png)
+
+## (d) Large Change in Initial Conditions
+
+Bodies started at $(1, 0), (0, 1), (0, 0)$ with velocities $(0, 1), (-1, 0), (0, 0)$:
+
+![With generic initial conditions the motion is irregular, with close encounters that whip the bodies around — typical chaotic three-body motion.](17_MontgomerysEight/imgs/trajectory_d.png)
+
+# P18. König's Theorem
+
+::: {.question}
+The total kinetic energy of a system of particles is $E_K = \frac{1}{2}\sum m_i v_i^2$.
+
+(a) Derive an expression of the form $E_K = \frac{1}{2} m_{\text{tot}} v_G^2 + \dots$ (fill in the rest).
+(b) Is it always true that $\sum \bup{F}_{\text{ext}} \cdot \bup{v}_G = \frac{d}{dt}\left(\frac{1}{2} m_{\text{tot}} v_G^2\right)$? Prove it or give a counter-example.
+(c) Is it always true that the power of the internal forces equals the rate of change of the second half of the expression in (a)? Prove it or give a counter-example.
+:::
+
+## (a) Kinetic Energy About the Centre of Mass
+
+Write each particle's position and velocity relative to the centre of mass $G$:
+$\bup{r}_i = \bup{r}_G + \bup{r}_{i/G}$ and $\bup{v}_i = \bup{v}_G + \bup{v}_{i/G}$. Then
+
+$$
+E_K = \frac{1}{2}\sum m_i\left(\bup{v}_G + \bup{v}_{i/G}\right)^2
+= \frac{1}{2} m_{\text{tot}} v_G^2 + \frac{1}{2}\sum m_i v_{i/G}^2 + \bup{v}_G \cdot \sum m_i \bup{v}_{i/G}
+$$
+
+The cross term vanishes because, by definition of the centre of mass,
+
+$$
+\sum m_i \bup{r}_{i/G} = \sum m_i \bup{r}_i - \bup{r}_G \sum m_i = m_{\text{tot}}\bup{r}_G - m_{\text{tot}}\bup{r}_G = \bup{0}
+\quad\Rightarrow\quad
+\sum m_i \bup{v}_{i/G} = \bup{0}
+$$
+
+so
+
+$$
+\boxed{E_K = \frac{1}{2} m_{\text{tot}} v_G^2 + \frac{1}{2}\sum m_i v_{i/G}^2}
+$$
+
+i.e. the kinetic energy of the total mass moving with $G$, plus the kinetic energy of the motion relative to $G$.
+
+![Hand derivation](18_KonigTheorem/imgs/konig_a.jpeg){width=85%}
+
+# P00. Walking and Running (Point-Mass Model)
+
+::: {.question}
+Model a walker/runner as a point mass $m$ on a massless telescoping leg under gravity $g$.
+During **stance** the foot is pinned to the ground and the leg pushes along its length with force $F(t)$;
+during **flight** the body is ballistic. Find periodic gaits, and use trajectory optimisation to find
+the gait that moves a distance $d$ per step at speed $v$ with the least positive leg work.
+:::
+
+## Model
+
+With the foot at $(x_c, 0)$ and leg length $\ell = \sqrt{(x - x_c)^2 + y^2}$:
+
+$$
+\text{stance:}\quad m\ddot{x} = F\,\frac{x - x_c}{\ell}, \qquad m\ddot{y} = F\,\frac{y}{\ell} - mg
+\qquad\qquad
+\text{flight:}\quad \ddot{x} = 0, \qquad \ddot{y} = -g
+$$
+
+Each step is one stance phase of length $t_s$ followed by one flight phase of length $t_f$;
+the next foot is placed so the step repeats. The script has four gaits: hand-picked ICs,
+a **flat walk** (leg force chosen so the body stays at a constant height $h$, no flight phase),
+a **run** with a sine-hump leg force, and **trajectory optimisation**.
+
+## Trajectory Optimisation
+
+Decision variables: the initial state $(x_0, y_0, \dot{x}_0, \dot{y}_0)$, the leg force at 11
+grid points (linearly interpolated), and the stance time $t_s$. With
+$m = g = \ell_{\max} = 1$, $d = 1$, $v = 1$ (so step time $= 1$), `fmincon` (SQP) solves
+
+$$
+\min\ \frac{\int_0^{t_s} \max(F\dot{\ell},\, 0)\, dt}{mgd}
+\quad\text{s.t.}\quad
+\bup{z}(t_{\text{step}}) = \bup{z}(0) + d\,\hat{\bup{\imath}}_x \ \text{(periodic)},\quad
+\ell \le \ell_{\max},\quad 0 \le F \le F_{\max}
+$$
+
+i.e. the cost of transport counting only positive work (negative work is free). The flat walk
+(cost $d/8h = 0.156$) is used as the initial guess.
+
+**Result:** `fmincon` converged in 39 iterations to a cost of transport of **0.125** — about 20% cheaper
+than the flat walk — with $t_s = 0.33$, $t_f = 0.67$. The optimiser abandoned walking and found a
+**running** gait: a short, nearly constant push ($F \approx 3$–$3.4\,mg$) followed by a long flight.
+
+![10 steps of the optimised gait. Blue = stance, orange = flight; the body bobs between $y \approx 0.96$ and $1.04$ while $\dot{x}$ stays close to 1.](00_WalkingAndRunning/imgs/trajOpt.png)

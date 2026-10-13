@@ -9,19 +9,24 @@ speedupFactor = 50;
 
 % System Params
 m = 1; M = 1;
-G = 1; k = 1;
+G = 1; k = 0.5;
 r0 = [3; 0];
 v0 = [0; 1];
 z0 = [r0; v0];
+
+fixedX0 = 2; %%% POINCARE SECTION
 
 % Pack params struct
 p.m = m; p.tspan = tspan; 
 p.M = M; p.G = G; p.k = k;
 p.z0 = z0;
+p.fixedX0 = fixedX0;
 
 % Root finding to find periodic solutions
 guess_tf = 30;
 [zstar, timePeriod] = doRootFinding(p, guess_tf);
+
+zstar = [fixedX0; zstar];
 
 if isempty(zstar)
     zstar = z0;
@@ -33,7 +38,7 @@ p.z0 = zstar;
 
 % Find Jacobian
 
-%%%%% Below is for finding jacobian of a pixed point
+%%%%% Below is for finding jacobian of a fixed point
 % h = 1e-3;
 % jac = zeros(numel(zstar), numel(zstar));
 % for i = 1:numel(zstar)
@@ -165,12 +170,12 @@ function zdot = centralForceODE(t, z, p)
 end
 
 function [zstar, timePeriod] = doRootFinding(p, guess_tf)
-    z0 = p.z0; tf = guess_tf;
+    z0 = p.z0(2:end); tf = guess_tf;
     guess_vars = [z0; tf];
     rootFindFunc = @(guess_vars) findPeriodicSolutions(guess_vars, p);
     rootFindOptions = optimoptions('fsolve', 'Algorithm', ...
         'levenberg-marquardt', 'MaxFunctionEvaluations', 10000, ...
-        'MaxIterations', 3000, 'FunctionTolerance', 1e-5);
+        'MaxIterations', 3000, 'FunctionTolerance', 1e-7);
     [z_vars,fval,exitflag,output] = fsolve(rootFindFunc, guess_vars, rootFindOptions)
 
     zstar = [];
@@ -184,6 +189,8 @@ end
 
 function error = findPeriodicSolutions(guess_vars, p)
     z0 = guess_vars(1:end-1);
+    x0 = p.fixedX0;
+    z0 = [x0; z0];
     tf = guess_vars(end);
 
     odeFunc = @(t, z) centralForceODE(t, z, p);

@@ -53,7 +53,7 @@ switch gait
         x0 = -0.383918;  y0 = 0.893941;  vx0 = 1.573636;  vy0 = -0.219348;
 
     case 'trajOpt'
-        systemParams.v_des = 1;
+        systemParams.v_des = 2;
         systemParams.d  = 1.0;
         systemParams.tStep = systemParams.d / systemParams.v_des;
         systemParams.collocationPoints = 10;
@@ -317,11 +317,14 @@ function cost = trajOptCost(z, systemParams, systemVariables)
     [z0, systemParams, systemVariables] = unpackTrajOpt(z, systemParams, systemVariables);
     [tArray, zArray] = oneStep(z0, 0, systemParams, systemVariables);
 
-    % Leg power during stance (leg is massless, so it does no work in flight)
+    % Leg power during stance
     iStance = 1:systemVariables.numPoints;
     t = tArray(iStance);
-    x = zArray(1, iStance) - systemVariables.xc;  y = zArray(2, iStance);
-    vx = zArray(3, iStance);                      vy = zArray(4, iStance);
+    x = zArray(1, iStance) - systemVariables.xc;  
+    y = zArray(2, iStance);
+    vx = zArray(3, iStance);
+    vy = zArray(4, iStance);
+    
     l = sqrt(x.^2 + y.^2);
     ldot = (x.*vx + y.*vy) ./ l;
     F = arrayfun(systemVariables.F, t);
