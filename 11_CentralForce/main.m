@@ -3,13 +3,13 @@ setDefaults();
 
 % Time
 t0 = 0;
-tf = 101;
+tf = 200;
 tspan = [t0 tf];
 speedupFactor = 50;
 
 % System Params
 m = 1; M = 1;
-G = 1; k = 0.5;
+G = -1.5; k = 1;
 r0 = [3; 0];
 v0 = [0; 1];
 z0 = [r0; v0];

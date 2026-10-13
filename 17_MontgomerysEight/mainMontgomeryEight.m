@@ -9,33 +9,33 @@ p.m3 = 1;
 % IC
 
 % GIVEN IC
-perturb = 0.0;
-r1_0 = [-0.97000436; 0.24308753];
-r2_0 = -r1_0;
-r3_0 = [0; 0];
-v3_0 = [0.93240737; 0.86473146] + [perturb; 0];
-v1_0 = -v3_0 / 2;
-v2_0 = -v3_0 / 2;
+% perturb = 0.00;
+% r1_0 = [-0.97000436; 0.24308753];
+% r2_0 = -r1_0;
+% r3_0 = [0; 0];
+% v3_0 = [0.93240737; 0.86473146] + [perturb; 0];
+% v1_0 = (-v3_0 / 2);
+% v2_0 = -v3_0 / 2;
 
 % OVERWRITE IC
-% r1_0 = [1; 0];
-% r2_0 = [0; 1];
-% r3_0 = [0; 0];
-% v1_0 = [0; 1];
-% v2_0 = [-1; 0];
-% v3_0 = [0; 0];
+r1_0 = [5; 0];
+r2_0 = [0; 0.82622];
+r3_0 = -(r1_0 + r2_0) / 2;
+v1_0 = [0; 0.3145];
+v2_0 = [0; 0];
+v3_0 = -(v1_0 + v2_0)/2;
 
 z0 = [r1_0; r2_0; r3_0; v1_0; v2_0; v3_0];
 
 % Time Params (Sim Params)
-t0 = 0; tf = 10;
+t0 = 0; tf = 400;
 tspan = [t0 tf];
-speedupFactor = 1;
+speedupFactor = 16;
 p.tspan = tspan;
 
 % Solve ODE
 odefunc = @(t, z) myRHS(t, z, p);
-odeOptions = odeset('RelTol', 1e-5, 'AbsTol', 1e-6);
+odeOptions = odeset('RelTol', 1e-5, 'AbsTol', 1e-5);
 sol = ode45(odefunc, tspan, z0, odeOptions);
 
 % Unpack ODE sol
