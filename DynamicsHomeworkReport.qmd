@@ -695,3 +695,19 @@ than the flat walk — with $t_s = 0.33$, $t_f = 0.67$. The optimiser abandoned 
 **running** gait: a short, nearly constant push ($F \approx 3$–$3.4\,mg$) followed by a long flight.
 
 ![10 steps of the optimised gait. Blue = stance, orange = flight; the body bobs between $y \approx 0.96$ and $1.04$ while $\dot{x}$ stays close to 1.](00_WalkingAndRunning/imgs/trajOpt.png)
+
+# P20. Two Masses
+
+::: {.question}
+<!-- TODO: fill question -->
+:::
+
+Part A.
+<!-- Put trajectory image -->
+
+Part B.
+With accuracy (reltol and abstol) in ode45 of 1e-3, or 1e-8, the RMS error and overall error curve between F_G and F_0 looks the same. This is expected as relatively the values of the numbers ode45 is solving (x, xdot) have both become more precise, but the difference between them should be the same.
+
+<!-- TODO partb image -->
+
+
