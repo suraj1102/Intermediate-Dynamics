@@ -711,3 +711,255 @@ With accuracy (reltol and abstol) in ode45 of 1e-3, or 1e-8, the RMS error and o
 <!-- TODO partb image -->
 
 
+# P21. Two Masses Constrained
+
+::: {.question}
+Replace the spring of P20 with a rigid rod. Set up the DAEs and solve them in MATLAB with a
+sinusoidally varying force $F$. Note any growing error in the constraint. Compare with the
+P20 method (a very large $k$): which is faster to compute, and which predicts the COM motion more
+accurately? Try initial conditions where the masses have unequal velocities, and explain the result.
+:::
+
+## Equations (DAE)
+
+The rod holds $x_2 - x_1 = d$. With rod tension $T$ (FBDs below), LMB on each mass and the
+constraint differentiated twice ($\ddot{x}_2 - \ddot{x}_1 = 0$) give three linear equations in
+$\ddot{x}_1, \ddot{x}_2, T$:
+
+$$
+\begin{bmatrix} m_1 & 0 & -1 \\ 0 & m_2 & 1 \\ -1 & 1 & 0 \end{bmatrix}
+\begin{bmatrix} \ddot{x}_1 \\ \ddot{x}_2 \\ T \end{bmatrix}
+=
+\begin{bmatrix} 0 \\ F(t) \\ 0 \end{bmatrix},
+\qquad F(t) = F_0 \sin t
+$$
+
+which are solved with `A\F` at every RHS call and passed to `ode45`.
+$m_1 = m_2 = 1$, $d = 1$, $F_0 = 1$, `RelTol = AbsTol = 1e-8`.
+
+![Hand working for P20 (left) and P21 (right)](21_TwoMassesConstrained/imgs/EoM.jpeg){width=85%}
+
+## Trajectory
+
+![$x_1$, $x_2$ and $x_G$ under $F = \sin t$ (run with both masses starting at the same velocity). The rod keeps the gap fixed and the COM moves as $(m_1 + m_2)\ddot{x}_G = F$.](21_TwoMassesConstrained/imgs/SinusoidalTrajectory.png)
+
+## Error in the Constraint
+
+![Constraint error $(x_2 - x_1) - d$ for consistent initial conditions (masses at rest).](21_TwoMassesConstrained/imgs/ErrorInConstraint-GoodICs.png)
+
+The error stays at round-off level ($\sim 10^{-15}$, RMS $5 \times 10^{-16}$) and does not grow
+noticeably over 10 s. In this 1D problem the constraint is linear, so $\ddot{x}_2 - \ddot{x}_1 = 0$
+is computed exactly (up to round-off) at every step and the relative velocity stays exactly zero:
+there is nothing for the integrator to accumulate.
+
+## Constraint vs. Stiff Spring ($k = 10^5$)
+
+![Top two: difference between the spring and the constraint solutions. Bottom: error in the rod length for each method.](21_TwoMassesConstrained/imgs/ConstraintVsSpring.png)
+
+- **Accuracy of the constraint:** the spring lets the gap change by $\sim F/k \approx 10^{-5}$,
+  while the DAE keeps it at $10^{-15}$. The two trajectories differ by about $10^{-6}$ to $10^{-5}$,
+  i.e. by the stretch of the spring.
+- **Speed:** averaged over 5 runs to $t_f = 10$ with the same tolerance $10^{-8}$:
+
+  | Method | ode45 steps | Time |
+  |---|---|---|
+  | DAE (rigid rod) | 55 | 4.8 ms |
+  | Stiff spring, $k = 10^5$ | 4143 | 53 ms |
+
+  The DAE is about **10× faster**. The spring adds an oscillation with frequency
+  $\sqrt{k(m_1 + m_2)/(m_1 m_2)} \approx 450$ rad/s, and `ode45` has to take tiny steps to follow
+  it even though it has almost no amplitude. The rigid rod has no fast time scale.
+- **COM motion:** for both methods the internal force cancels from
+  $(m_1 + m_2)\ddot{x}_G = F$, so the COM is "right" in both models and any error is integration
+  error only. Against the exact $x_G(10) = x_G(0) + (10 - \sin 10)/2$, the DAE run is off by
+  $1.8 \times 10^{-9}$ (within the requested $10^{-8}$) and the spring run by $6 \times 10^{-15}$.
+  The spring is not the better model here: its stiffness forces 75× more steps, and the small
+  steps happen to make the slow COM motion very accurate. At equal cost, the DAE is the better buy.
+
+## Unequal Initial Velocities
+
+![Constraint error when the masses start with $\dot{x}_2(0) - \dot{x}_1(0) = 2$.](21_TwoMassesConstrained/imgs/ErrorInConstraint-OpoositeInitVelocities.png)
+
+The "rod" now grows linearly at a rate of exactly 2 m/s. The DAE only enforces the
+**acceleration** form of the constraint, $\ddot{x}_2 - \ddot{x}_1 = 0$. That keeps the relative
+velocity constant, but it does not know what that constant should be. Initial conditions with
+$\dot{x}_2 \ne \dot{x}_1$ are physically inconsistent with a rigid rod: a real rod would apply an
+impulse at $t = 0$ to equalise the velocities. Without that, the solution keeps the initial relative
+velocity forever, and $(x_2 - x_1) - d = (\dot{x}_2(0) - \dot{x}_1(0))\,t$.
+
+# P22. Simple Pendulum
+
+::: {.question}
+Derive the simple pendulum equation $\ddot\theta + \frac{g}{\ell}\sin\theta = 0$ as many ways as you can,
+in polar coordinates:
+
+(a) linear momentum, manipulating the equations to eliminate the constraint force
+(b) linear momentum, dot with $\hat{\bup{e}}_\theta$
+(c) linear momentum, cross with $\bup{r}$
+(d) angular momentum
+(e) conservation of energy
+(f) power balance
+(g) Lagrange equations (if you know them already).
+:::
+
+$\theta$ is measured counter-clockwise from the horizontal $+x$ axis, so $\bup{r} = \ell\,\hat{\bup{e}}_r$,
+$\bup{v} = \ell\dot\theta\,\hat{\bup{e}}_\theta$ and $\bup{a} = \ell\ddot\theta\,\hat{\bup{e}}_\theta - \ell\dot\theta^2\,\hat{\bup{e}}_r$.
+The forces are the rod tension $-T\hat{\bup{e}}_r$ and gravity $-mg\hat{\bup{\jmath}}$. With this
+convention every method gives
+
+$$
+\ddot\theta + \frac{g}{\ell}\cos\theta = 0
+$$
+
+which is the requested equation with $\theta$ measured from the downward vertical instead
+($\theta_{\text{down}} = \theta + \pi/2$, so $\cos\theta = \sin\theta_{\text{down}}$).
+
+| Method | Key step |
+|---|---|
+| (a) LMB, eliminate $T$ | $-T\hat{\bup{e}}_r - mg\hat{\bup{\jmath}} = m(\ell\ddot\theta\,\hat{\bup{e}}_\theta - \ell\dot\theta^2\hat{\bup{e}}_r)$. I did not find a way to eliminate $T$ other than the projections below. |
+| (b) LMB $\cdot\,\hat{\bup{e}}_\theta$ | $-mg\cos\theta = m\ell\ddot\theta$ |
+| (c) $\bup{r} \times$ LMB | $-mg\ell\sin(90^\circ - \theta)\,\hat{\bup{k}} = m\ell^2\ddot\theta\,\hat{\bup{k}}$ |
+| (d) AMB about $O$ | $\sum \bup{M}_{/O} = -mg\ell\cos\theta\,\hat{\bup{k}} = \dot{\bup{H}}_{/O} = m\ell^2\ddot\theta\,\hat{\bup{k}}$ |
+| (e) Energy | $mg\ell\sin\theta + \tfrac{1}{2}m\ell^2\dot\theta^2 = \text{const}$; differentiate and divide by $\dot\theta$ |
+| (f) Power | $(-T\hat{\bup{e}}_r - mg\hat{\bup{\jmath}}) \cdot \ell\dot\theta\,\hat{\bup{e}}_\theta = \frac{d}{dt}\left(\tfrac{1}{2}m\ell^2\dot\theta^2\right)$ |
+| (g) Lagrange | not done |
+
+<embed src="22_SimplePendulum/imgs/P22.SimplePendulum.pdf" type="application/pdf" width="100%" height="900px">
+
+# P23. Pendulum Numerics
+
+::: {.question}
+Set up the pendulum in Cartesian coordinates. Express the constant-length constraint as linear
+equations restricting the acceleration, and solve these DAEs numerically (no polar coordinates).
+Compare quantitatively with a solution of the simple pendulum equation, and integrate long enough
+to detect drift away from the kinematic constraint.
+:::
+
+## Equations
+
+With $\bup{r} = x\hat{\bup{\imath}} + y\hat{\bup{\jmath}}$ and tension $T$ along $-\bup{r}/\ell$, LMB in
+$x$ and $y$ plus the length constraint $x^2 + y^2 = \ell^2$ differentiated twice
+($x\ddot{x} + y\ddot{y} = -\dot{x}^2 - \dot{y}^2$) give
+
+$$
+\begin{bmatrix} m & 0 & x/\ell \\ 0 & m & y/\ell \\ x & y & 0 \end{bmatrix}
+\begin{bmatrix} \ddot{x} \\ \ddot{y} \\ T \end{bmatrix}
+=
+\begin{bmatrix} 0 \\ -mg \\ -\dot{x}^2 - \dot{y}^2 \end{bmatrix}
+$$
+
+The reference solution is $\ddot\theta = -\frac{g}{\ell}\cos\theta$ (P22, $\theta$ from the horizontal),
+mapped to Cartesian with $x = \ell\cos\theta$, $y = \ell\sin\theta$.
+
+$m = 1$, $\ell = 1$, $g = 10$, released from rest at $\theta_0 = 30^\circ$ (above the horizontal),
+`ode45` with `RelTol = AbsTol = 1e-5`, $t_f = 100$.
+
+<embed src="23_PendulumNumerics/imgs/P23.PendulumNumerics.pdf" type="application/pdf" width="100%" height="900px">
+
+## DAE vs. Simple Pendulum
+
+![$x(t)$ and $y(t)$ from both formulations. They overlap at first and slowly go out of phase.](23_PendulumNumerics/imgs/trajectory.png)
+
+![Difference between the DAE and the $\theta$-equation solutions.](23_PendulumNumerics/imgs/LMBvsDAE.png)
+
+The two solutions agree to about $10^{-6}$ at first. The difference then grows steadily and reaches
+order 1 (the size of the pendulum) after about 70–100 s, with RMS $\approx 0.46$ over the run. The
+DAE pendulum is slowly getting longer (below), so its period changes and the error is mostly a
+**phase** error: the two bobs swing the same way but are no longer in step.
+
+## Constraint Drift
+
+![Top: length error $\sqrt{x^2 + y^2} - \ell$. Bottom: velocity-constraint error $\bup{r} \cdot \bup{v}$.](23_PendulumNumerics/imgs/constraintDrift.png)
+
+- $\bup{r} \cdot \bup{v}$ (should be 0) grows **linearly**, to $1.5 \times 10^{-3}$ at $t = 100$.
+  Only the acceleration constraint is enforced, so every small integration error in the velocity
+  constraint is kept and nothing pulls it back (the same mechanism as the unequal velocities in P21).
+- The length error grows **quadratically**, to $0.072$ at $t = 100$. This follows from the line above:
+  $\frac{d}{dt}(x^2 + y^2) = 2\,\bup{r} \cdot \bup{v} \approx 2ct$, so $x^2 + y^2 - \ell^2 \approx ct^2$.
+  With $c = 1.5 \times 10^{-5}$, this predicts $|\bup{r}| - \ell \approx 0.075$ at $t = 100$, which
+  matches the plot.
+
+![Animation final frame: LMB (red) vs. DAE (blue) pendulum. The DAE bob has drifted out of phase with the LMB bob.](23_PendulumNumerics/imgs/animationFinalFrame.png){width=60%}
+
+# P26. Rotation with Zero Angular Momentum
+
+::: {.question}
+A massless rigid plate floats in space with four equal masses on it. Two are fixed on the $y$ axis
+at $y = \pm 2$. The other two are driven around circles of radius 1 centred at $x = \pm 2$ (starting
+at $x = \pm 3$), always mirror images through the origin, with
+$\theta = (1 - \cos t)\pi$ for $0 \le t \le \pi$. Use conservation of angular momentum
+($\bup{H}_{/O} = \bup{0}$) to find the net rotation $\phi$ of the plate after one revolution.
+:::
+
+## Approach
+
+Let $\phi$ be the rotation of the plate (frame $\hat{\bup{e}}_x, \hat{\bup{e}}_y$) relative to the
+fixed frame, with $\bup{\omega} = \dot\phi\,\hat{\bup{k}}$. Each mass's acceleration is found with the
+five-term formula
+
+$$
+\bup{a}_{/F} = \bup{a}_{O/F} + \bup{a}_{/O} + 2\bup{\omega} \times \bup{v}_{/O} + \dot{\bup{\omega}} \times \bup{r}_{/O} + \bup{\omega} \times (\bup{\omega} \times \bup{r}_{/O})
+$$
+
+- **Masses 1, 2** (fixed on the plate at $\pm 2\hat{\bup{e}}_y$): $\dot{\bup{H}}_{i/O} = 4m\ddot\phi\,\hat{\bup{k}}$ each.
+- **Masses 3, 4** (on the circles, $\bup{r}_{3/O} = 2\hat{\bup{e}}_x + \hat{\bup{e}}_{r_B}$, where $\hat{\bup{e}}_{r_B}$ is at angle $\theta$): $\dot{\bup{H}}_{3/O} = \dot{\bup{H}}_{4/O}$ by symmetry.
+
+Summing and setting $\sum\dot{\bup{H}}_{i/O} = \bup{0}$ (no external moments) gives a second-order
+equation for $\phi$. 
+
+The below work tries to do that by hand which of course resulted in a wrong
+answer and the EoM derived by hand are not correct.
+
+<embed src="26_RotationWithoutH/imgs/Derivation.pdf" type="application/pdf" width="100%" height="900px">
+
+The same approach was used to find the EoM symbolically and animate the system
+and find the below trajectories. 
+
+## Result
+
+<!-- TODO: add phi(t) plot and the net rotation phi(pi) -->
+
+![](26_RotationWithoutH/imgs/phi_t.png)
+
+![](26_RotationWithoutH/imgs/motion.png)
+
+![](26_RotationWithoutH/imgs/trajectoriesAndChecks.png)
+
+# P31. Double Pendulum (2D)
+
+::: {.question}
+A double pendulum is made of two bars with hinges at the origin $O$ and the elbow $E$; $g = 1$, no friction, no
+joint motors.
+
+(a) Set up and numerically solve the governing equations found with AMB. Start with the upper arm horizontal to
+the right and the forearm vertical up; integrate to $t = 30$ and draw the trajectory of the end of the forearm
+(equal uniform bars of length 1, $g = 1$).
+(b) Solve again with DAEs and show by comparison that the equations are the same as from AMB.
+(c) Solve again with Lagrange equations and compare.
+(d) Animate the solution.
+(e) Extras: other ways of setting up the ODEs, energy/angular-momentum checks, special cases, nicer animation.
+:::
+
+## DAE Formulation (part b)
+
+The current version models the arms as massless rods with point masses $m_1$ at the elbow $E$
+and $m_2$ at the end $P$. The state is $\bup{z} = [\bup{r}_E, \bup{v}_E, \bup{r}_P, \bup{v}_P]$ and the
+unknowns are $\bup{a}_E$, $\bup{a}_P$ and the two rod tensions $T_1$ ($OE$) and $T_2$ ($EP$). With
+$\hat{\bup{\lambda}}_1 = \bup{r}_E/|\bup{r}_E|$ and $\hat{\bup{\lambda}}_2 = \bup{r}_{P/E}/|\bup{r}_{P/E}|$:
+
+$$
+\begin{aligned}
+m_1\bup{a}_E &= -T_1\hat{\bup{\lambda}}_1 + T_2\hat{\bup{\lambda}}_2 - m_1 g\hat{\bup{\jmath}} \\
+m_2\bup{a}_P &= -T_2\hat{\bup{\lambda}}_2 - m_2 g\hat{\bup{\jmath}} \\
+\bup{r}_E \cdot \bup{a}_E &= -|\bup{v}_E|^2 \\
+\bup{r}_{P/E} \cdot (\bup{a}_P - \bup{a}_E) &= -|\bup{v}_P - \bup{v}_E|^2
+\end{aligned}
+$$
+
+The last two lines are the constant-length constraints $|\bup{r}_E| = \ell_1$ and
+$|\bup{r}_{P/E}| = \ell_2$, each differentiated twice. These are 6 linear equations, solved with `A\F`
+inside the RHS and passed to `ode45`. The run in `main.m` uses $m_1 = m_2 = \ell_1 = \ell_2 = g = 1$,
+the upper arm hanging straight down and the forearm at $-30^\circ$, released from rest, to $t_f = 10$.
+It plots the paths of $E$ and $P$ and animates the arms.
+
+<!-- TODO: trajectory/animation images; AMB (a), Lagrange (c), uniform bars and the specified ICs -->

@@ -5,15 +5,15 @@ p.m1 = 1;
 p.m2 = 1;
 p.l1 = 1;
 p.l2 = 1;
-p.g = 10;
+p.g = 1;
 
 m1 = p.m1; m2 = p.m2; l1 = p.l1; l2 = p.l2; g = p.g;
 
 % ICs
-theta1 = pi/2;
-theta2 = 0;
+theta1 = -pi/2;
+theta2 = -pi/6;
 theta1dot = 0;
-theta2dot = 1;
+theta2dot = 0;
 
 rE0 = l1 * [cos(theta1); sin(theta1)];
 vE0 = l1 * theta1dot * [-sin(theta1); cos(theta1)];

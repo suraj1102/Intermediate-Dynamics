@@ -1,3 +1,6 @@
 *.asv
 .DS_Store
 midsemVivaSheet*
+
+/.quarto/
+**/*.quarto_ipynb
